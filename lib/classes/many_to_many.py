@@ -4,6 +4,9 @@ class Article:
     all = []
 
     def __init__(self, author, magazine, title):
+    # author, magazine instances and title string validation
+    #Checks types and title length to enforce data integrity.
+    #Raises exceptions if invalid data is provided.
         if not isinstance(author, Author):
             raise Exception("Author must be an Author instance")
         if not isinstance(magazine, Magazine):
@@ -15,7 +18,9 @@ class Article:
         self._author = author
         self._magazine = magazine
         self._title = title
+     # Adds the article to the global Article.all.
         Article.all.append(self)
+    #it calls line 24 to link the article to the magazine's article list.
         magazine.add_article(self)
         if self not in author._articles:
             author._articles.append(self)
@@ -61,7 +66,7 @@ class Author:
         if len(name) == 0:
             raise Exception("Author name must be longer than 0 characters")
         self._name = name
-        self._articles = []
+        self._articles = []  # List to hold articles authored by this author
 
     @property
     def name(self):
@@ -77,11 +82,17 @@ class Author:
             raise Exception("Author name must be longer than 0 characters")
         self._name = value
 
+   # Property to access articles authored by this author
+
     def articles(self):
         return self._articles
 
     def magazines(self):
         return list(set(article.magazine for article in self._articles if isinstance(article.magazine, Magazine)))
+
+    # Method to add an article to this author's list of articles
+    # Validates that the magazine is an instance of Magazine and the title is a valid string
+    # Raises exceptions if invalid data is provided.
 
     def add_article(self, magazine, title):
         if not isinstance(magazine, Magazine):
@@ -90,7 +101,9 @@ class Author:
             raise Exception("Article title must be a string between 5 and 50 characters")
         article = Article(self, magazine, title)
         return article
-
+    
+    # Derives unique categories (topics) from the author's magazines.
+    # Returns None if no magazines.
     def topic_areas(self):
         magazines = self.magazines()
         if not magazines:
@@ -152,15 +165,38 @@ class Magazine:
         if not self._articles:
             return None
         return [article.title for article in self._articles]
+    
+    # Authors with >2 articles, using Counter.
+    # Returns None if none qualify.
 
     def contributing_authors(self):
         author_counts = Counter(article.author for article in self._articles if isinstance(article.author, Author))
         authors = [author for author, count in author_counts.items() if count > 2]
         return authors if authors else None
-
+    
+    
     @classmethod
+    # Finds magazine with most articles globally.
     def top_publisher(cls):
         if not Article.all:
             return None
         magazine_counts = Counter(article.magazine for article in Article.all if isinstance(article.magazine, Magazine))
         return max(magazine_counts, key=magazine_counts.get, default=None) if magazine_counts else None
+    
+
+    # Usage Example
+if __name__ == "__main__":
+        author = Author("Jane Doe")
+        magazine = Magazine("Tech Weekly", "Technology")
+        article = author.add_article(magazine, "AI Trends")
+        print(author.articles())  
+        print(magazine.contributing_authors())
+        print(magazine.article_titles())
+        print(magazine.top_publisher())
+        print(magazine.contributors())
+        print(magazine.category)  # Should return "Technology"
+        print(magazine.name)  # Should return "Tech Weekly"
+        print(author.name)  # Should return "Jane Doe"
+        print(article.title)  # Should return "AI Trends"
+        print(magazine.articles())  # Should return the list of articles in the magazine
+        print(author.topic_areas())  # Should return the unique categories of magazines authored by Jane
